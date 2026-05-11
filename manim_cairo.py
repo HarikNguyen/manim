@@ -87,7 +87,8 @@ def create_intro_mobject():
         tex_template=get_vn_template()
     )
     names = Tex(
-        r"Nguyễn Lê Tuấn Khải \& Nguyễn Văn Phúc",
+        # r"Nguyễn Lê Tuấn Khải \& Nguyễn Văn Phúc",
+        r"Nguyễn Lê Tuấn Khải",
         font_size=28,
         color=B3B1B.DARK_GRAY,
         tex_template=get_vn_template()
@@ -582,6 +583,18 @@ def play_context_sequence(scene, wait_times=[1.5,3]):
         scene.wait(tracker.duration)
     chef_silent(chef)
 
+    # clean
+    scene.play(
+        FadeOut(store), 
+        FadeOut(graph_elements),
+        FadeOut(speech_bubble),
+        run_time=1.5
+    )
+
+    return chef
+    
+
+
 ############################################################################################
 ## Scene 3: The b2biers Solution (Brand Collaboration)
 ############################################################################################
@@ -697,8 +710,7 @@ def create_b2b_graph():
 ##############################################
 ### Actions"""
 ##############################################
-def play_b2b_sequence(scene):
-    chef = chef_appear(scene, x=-6, y=-2, direction=RIGHT)
+def play_b2b_sequence(scene, chef):
     
     # Stage 1: Khẳng định hàng rào chi phí
     money_bag = create_money_bag()
@@ -720,6 +732,8 @@ def play_b2b_sequence(scene):
     speech_doc = "Và đó cũng chính là lúc Konstantinos Theocharidis cùng cộng sự đề xuất ra hệ thống b2biers. Chữ b-2-b ở đây mang ý nghĩa Brand-to-Brand, tức là sự hợp tác trực tiếp giữa các thương hiệu với nhau."
     with scene.voiceover(text=speech_doc) as tracker:
         scene.wait(tracker.duration)
+        scene.play(FadeOut(kols, shift=UP), run_time=1)
+        scene.play(FadeOut(money_bag, scale=0.5), run_time=1)
     chef_silent(chef)
 
     # Render b2b graph
@@ -778,7 +792,9 @@ def play_b2b_sequence(scene):
     chef_silent(chef)
     
     # Clean to next scene
-    scene.play(FadeOut(graph_mobject), FadeOut(VGroup(link1, link2, link3)), FadeOut(chef))
+    scene.play(FadeOut(graph_mobject), FadeOut(VGroup(link1, link2, link3)))
+
+    return chef
 
 ############################################################################################
 ## Scene 4: The b2biers Solution (Brand Collaboration)
@@ -787,6 +803,636 @@ def play_b2b_sequence(scene):
 ##############################################
 ### Mobjects
 ##############################################
+def create_scientific_box(label, color, width=3.5):
+    rect = Rectangle(width=width, height=1.2, fill_color=color, fill_opacity=0.2, stroke_color=color)
+    title = Text(label, font_size=20, color=color, weight=BOLD)
+    return VGroup(rect, title)
+
+def create_feedback_loop():
+    # Vòng tròn đại diện cho cơ chế Semi-Bandit Feedback
+    arc = CurvedArrow(start_point=RIGHT*2, end_point=LEFT*2, angle=-TAU/3, color=B3B1B.GOLD)
+    label = Text("Semi-Bandit Feedback", font_size=18, color=B3B1B.GOLD)
+    return VGroup(arc, label)
+
+##############################################
+### Actions"""
+##############################################
+
+def play_sys_architecture(scene, chef):
+    # Define architecture layers
+    units_layer = VGroup(
+        create_scientific_box("Data Units", B3B1B.PURPLE),
+        Text("Similarity Join | Network Stats", font_size=14, color=B3B1B.LIGHT_GRAY)
+    ).arrange(DOWN, buff=0.1).move_to(DOWN * 2)
+
+    ops_layer = VGroup(
+        create_scientific_box("Operations", B3B1B.BLUE),
+        Text("Influence Opt | Subscription Opt", font_size=14, color=B3B1B.LIGHT_GRAY)
+    ).arrange(DOWN, buff=0.1).move_to(ORIGIN)
+
+    pde_layer = VGroup(
+        create_scientific_box("Post Decision Engine", B3B1B.RED),
+        Text("Exploration vs Exploitation", font_size=14, color=B3B1B.LIGHT_GRAY)
+    ).arrange(DOWN, buff=0.1).move_to(UP * 2)
+
+    # Stage 1: Problem
+    chef_talk(chef)
+    speech_doc = "Dưới góc nhìn của nhà khoa học dữ liệu, b2biers không chỉ là một ứng dụng, mà là một hệ thống giải quyết bài toán tối ưu hóa tổ hợp CAIM đầy thách thức."
+    with scene.voiceover(text=speech_doc) as tracker:
+        formula = MathTex(r"\arg\max_{S \subseteq \mathcal{F}, |S|=k} \sigma(S)", color=B3B1B.YELLOW).shift(RIGHT * 3)
+        scene.play(Write(formula))
+        scene.wait(max(0, tracker.duration - 2))
+    chef_silent(chef)
+
+    # Stage 2: Units
+    chef_talk(chef)
+    speech_doc = "Mà tại tầng thấp nhất, chính là các Units, chúng đóng vai trò là các Data Operators. Chúng thực hiện các phép tính k-N-N Join và tính toán cấu trúc đồ thị để tạo ra Feature Space."
+    with scene.voiceover(text=speech_doc) as tracker:
+        scene.play(FadeIn(units_layer, shift=UP))
+        scene.wait(max(0, tracker.duration - 1.5))
+    chef_silent(chef)
+
+    # Stage 3: Operations
+    chef_talk(chef)
+    speech_doc = "Tiếp đó là tầng Operations sử dụng các mô hình lan truyền như Independent Cascade để định nghĩa hàm mục tiêu. Đây là nơi các thuật toán Greedy hoặc Heuristic bắt đầu làm việc."
+    with scene.voiceover(text=speech_doc) as tracker:
+        arrow1 = Arrow(units_layer.get_top(), ops_layer.get_bottom(), color=WHITE, buff=0.1)
+        scene.play(FadeIn(ops_layer, shift=UP), GrowArrow(arrow1))
+        scene.wait(max(0, tracker.duration - 2))
+    chef_silent(chef)
+
+    # Stage 4: PDE
+    chef_talk(chef)
+    speech_doc = "Cuối cùng, P-D-E đóng vai trò là động cơ, hay trái tim của hệ thống. Nó giải quyết bài toán thiếu hụt dữ liệu thực tế bằng cơ chế Semi-Bandit. Nó liên tục cân bằng giữa việc khai thác những kết quả tốt đã biết và khám phá các tổ hợp thương hiệu mới."
+    with scene.voiceover(text=speech_doc) as tracker:
+        arrow2 = Arrow(ops_layer.get_top(), pde_layer.get_bottom(), color=WHITE, buff=0.1)
+        scene.play(FadeIn(pde_layer, shift=UP), GrowArrow(arrow2))
+        
+        # Tạo vòng lặp hồi tiếp (Feedback)
+        feedback = CurvedArrow(pde_layer.get_right(), units_layer.get_right(), angle=-TAU/4, color=B3B1B.GOLD)
+        fb_label = Text("Semi-Bandit Feedback", font_size=16, color=B3B1B.GOLD).next_to(feedback, RIGHT)
+        
+        scene.play(Create(feedback), Write(fb_label))
+        scene.play(Indicate(pde_layer, color=B3B1B.RED), run_time=1.5)
+        scene.wait(max(0, tracker.duration - 3.5))
+    chef_silent(chef)
+
+    # Stage 5: Conclusion
+    chef_talk(chef)
+    speech_doc = "Sự phối hợp chặt chẽ giữa ba tầng này giúp b2biers vượt qua sự bùng nổ tổ hợp và đạt được hiệu suất lan truyền tối ưu trong mạng xã hội."
+    with scene.voiceover(text=speech_doc) as tracker:
+        scene.wait(tracker.duration)
+    chef_silent(chef)
+
+    # Clean
+    scene.play(FadeOut(VGroup(units_layer, ops_layer, pde_layer, arrow1, arrow2, feedback, fb_label, formula)))
+
+    return chef
+
+############################################################################################
+## Scene 5: Data Processing Units (U1 to U5)
+############################################################################################
+
+##############################################
+### Mobjects
+##############################################
+def create_venn_diagram(radius=1.2, shift_amount=0.8, color_left=B3B1B.BLUE, color_right=B3B1B.GREEN, label_left="Brand A", label_right="Brand B"):
+    circle_left = Circle(radius=radius, color=color_left, fill_opacity=0.3).shift(LEFT * shift_amount)
+    circle_right = Circle(radius=radius, color=color_right, fill_opacity=0.3).shift(RIGHT * shift_amount)
+    intersection = Intersection(circle_left, circle_right, color=B3B1B.YELLOW, fill_opacity=0.8)
+    text_left = Text(label_left, font_size=20, color=color_left).next_to(circle_left, UP)
+    text_right = Text(label_right, font_size=20, color=color_right).next_to(circle_right, UP)
+    return VGroup(circle_left, circle_right), intersection, VGroup(text_left, text_right)
+
+def create_concept_mobject():
+    doc = Rectangle(height=1.5, width=1.2, color=B3B1B.LIGHT_GRAY, fill_opacity=0.2)
+    kw1 = Text("#keyword1", font_size=16, color=B3B1B.YELLOW).move_to(doc.get_center() + UP*0.3)
+    kw2 = Text("#concept", font_size=16, color=B3B1B.BLUE).move_to(doc.get_center())
+    kw3 = Text("#tag3", font_size=16, color=B3B1B.GREEN).move_to(doc.get_center() + DOWN*0.3)
+    return VGroup(doc, kw1, kw2, kw3)
+
+def create_unit_title(text):
+    return Text(text, font_size=24, color=B3B1B.WHITE, weight=BOLD)
+
+##############################################
+### Actions
+##############################################
+def play_units_sequence(scene, chef):
+    # --- Stage 1: TỔNG QUAN 5 UNITS ---
+    chef_talk(chef)
+    speech_doc = "Để hệ thống b2biers có thể hoạt động, Konstantinos đề xuất 5 Data Units độc lập để xử lý dữ liệu mạng xã hội. Nên chúng ta hãy cùng đi sâu vào từng Unit một."
+    with scene.voiceover(text=speech_doc) as tracker:
+        scene.wait(tracker.duration)
+    chef_silent(chef)
+
+    # Stage 2: U1 - FEATURE SIMILARITY ---
+    title_u1 = create_unit_title("U1. Feature Similarity").to_edge(UP)
+    circles, inter, labels = create_venn_diagram(label_left="Thương hiệu A", label_right="Thương hiệu B")
+    vg_u1 = VGroup(circles, labels).move_to(ORIGIN)
+
+    chef_talk(chef)
+    speech_doc = "Unit đầu tiên là Feature Similarity. Nó đo lường độ tương đồng giữa hai thương hiệu bất kỳ dựa trên phần giao thoa trong tệp khách hàng của họ."
+    with scene.voiceover(text=speech_doc) as tracker:
+        scene.play(Write(title_u1))
+        scene.play(FadeIn(vg_u1))
+        scene.play(FadeIn(inter), run_time=1)
+        scene.play(Indicate(inter, color=B3B1B.YELLOW), run_time=1.5)
+        scene.wait(max(0, tracker.duration - 3.5))
+    chef_silent(chef)
+    
+    scene.play(FadeOut(vg_u1), FadeOut(inter), FadeOut(title_u1))
+
+    # Stage 3: U2 & U3 - CONTENT JOINS ---
+    title_u23 = create_unit_title("U2 & U3. Content Joins").to_edge(UP)
+    
+    user_node = Circle(radius=0.4, color=B3B1B.RED, fill_opacity=1).shift(LEFT*3)
+    user_label = Text("User", font_size=20).next_to(user_node, DOWN)
+    
+    post1 = Rectangle(height=0.8, width=0.8, color=B3B1B.BLUE, fill_opacity=0.5).shift(RIGHT*2 + UP*1.5)
+    post2 = Rectangle(height=0.8, width=0.8, color=B3B1B.GREEN, fill_opacity=0.5).shift(RIGHT*2 + DOWN*1.5)
+    
+    arrow1 = Arrow(user_node.get_right(), post1.get_left(), color=B3B1B.BLUE)
+    arrow2 = Arrow(user_node.get_right(), post2.get_left(), color=B3B1B.GREEN)
+    
+    lbl1 = Text("Identical Content (U2)", font_size=18, color=B3B1B.BLUE).next_to(post1, RIGHT)
+    lbl2 = Text("Exploration Content (U3)", font_size=18, color=B3B1B.GREEN).next_to(post2, RIGHT)
+
+    chef_talk(chef)
+    speech_doc = "Tiếp theo là U 2 và U 3: Content Joins. U 2 tìm kiếm các bài đăng có nội dung trùng khớp với sở thích của người dùng. Trong khi đó, U 3 làm nhiệm vụ khám phá, tìm các bài đăng khác biệt để mở rộng không gian tương tác."
+    with scene.voiceover(text=speech_doc) as tracker:
+        scene.play(Write(title_u23))
+        scene.play(FadeIn(user_node), FadeIn(user_label))
+        scene.play(GrowArrow(arrow1), FadeIn(post1), Write(lbl1))
+        scene.play(GrowArrow(arrow2), FadeIn(post2), Write(lbl2))
+        scene.wait(max(0, tracker.duration - 4))
+    chef_silent(chef)
+
+    scene.play(FadeOut(VGroup(title_u23, user_node, user_label, post1, post2, arrow1, arrow2, lbl1, lbl2)))
+
+    # Stage 4: U4 - POST CONCEPT ---
+    title_u4 = create_unit_title("U4. Post Concept").to_edge(UP)
+    concept_doc = create_concept_mobject().scale(2).move_to(ORIGIN)
+
+    chef_talk(chef)
+    speech_doc = "Unit thứ tư là Post Concept. Thuật toán sẽ phân tích dữ liệu và trích xuất ra các từ khóa cốt lõi nhất, giúp máy tính định lượng được nội dung của một bài đăng cụ thể."
+    with scene.voiceover(text=speech_doc) as tracker:
+        scene.play(Write(title_u4))
+        scene.play(FadeIn(concept_doc[0])) # Hiện hình chữ nhật (bài đăng)
+        scene.play(Write(concept_doc[1:]), run_time=1.5) # Các từ khóa bay ra
+        scene.play(Indicate(concept_doc[1:]))
+        scene.wait(max(0, tracker.duration - 3.5))
+    chef_silent(chef)
+
+    scene.play(FadeOut(title_u4), FadeOut(concept_doc))
+
+    # Stage 5: U5 - POST COHERENCE ---
+    title_u5 = create_unit_title("U5. Post Coherence").to_edge(UP)
+    
+    docA = Rectangle(height=1.2, width=0.8, color=B3B1B.YELLOW, fill_opacity=0.5).shift(LEFT*2.5)
+    docB = Rectangle(height=1.2, width=0.8, color=B3B1B.PURPLE, fill_opacity=0.5).shift(RIGHT*2.5)
+    
+    link = DoubleArrow(docA.get_right(), docB.get_left(), color=B3B1B.WHITE)
+    check_mark = Text("✔ Tính Nhất Quán (Coherent)", font_size=24, color=B3B1B.GREEN).next_to(link, UP)
+
+    chef_talk(chef)
+    speech_doc = "Cuối cùng là U 5: Post Coherence. Khi hệ thống quyết định gộp nhiều thương hiệu vào chung một quảng cáo, U 5 sẽ kiểm tra chéo các từ khóa để đảm bảo chúng có tính nhất quán và không mâu thuẫn với nhau."
+    with scene.voiceover(text=speech_doc) as tracker:
+        scene.play(Write(title_u5))
+        scene.play(FadeIn(docA), FadeIn(docB))
+        scene.play(GrowArrow(link))
+        scene.play(Write(check_mark))
+        scene.wait(max(0, tracker.duration - 3))
+    chef_silent(chef)
+
+    # Stage 6: KẾT LUẬN ---
+    chef_talk(chef)
+    speech_doc = "Cả 5 Units này tạo thành một tầng xử lý dữ liệu mạnh mẽ, cung cấp thông tin đầu vào chuẩn xác để các Operations giải quyết bài toán."
+    with scene.voiceover(text=speech_doc) as tracker:
+        scene.play(Circumscribe(check_mark, color=B3B1B.GREEN))
+        scene.wait(max(0, tracker.duration - 1))
+    chef_silent(chef)
+
+    scene.play(FadeOut(VGroup(title_u5, docA, docB, link, check_mark)))
+
+    return chef
+
+
+############################################################################################
+## Scene 6: The Operations Layer.
+############################################################################################
+
+##############################################
+### Mobjects
+##############################################
+def create_op_icon(label, subtext=""):
+    box = RoundedRectangle(corner_radius=0.1, width=4, height=1.2, fill_color=B3B1B.BLUE, fill_opacity=0.8, stroke_color=WHITE)
+    main_text = Text(label, font_size=20, color=WHITE, weight=BOLD)
+    if subtext:
+        st = Text(subtext, font_size=14, color=B3B1B.LIGHT_GRAY).next_to(main_text, DOWN, buff=0.1)
+        return VGroup(box, main_text, st)
+    return VGroup(box, main_text)
+
+def create_strategy_visual(type="influence"):
+    if type == "influence":
+        center = Dot(color=B3B1B.YELLOW)
+        lines = VGroup(*[Line(ORIGIN, [np.cos(a), np.sin(a), 0], color=B3B1B.YELLOW) for a in np.linspace(0, TAU, 8)])
+        return VGroup(center, lines).scale(0.5)
+    elif type == "diversity":
+        return VGroup(Triangle(), Square(), Circle()).scale(0.3).arrange(RIGHT, buff=0.2).set_color(B3B1B.GOLD)
+    elif type == "sub":
+        person = Circle(radius=0.2, color=WHITE)
+        plus = Text("+", color=B3B1B.GREEN).scale(0.5).next_to(person, UR, buff=-0.1)
+        return VGroup(person, plus).scale(0.8)
+
+##############################################
+### Actions
+##############################################
+def play_operations_sequence(scene, chef):
+    # --- NHỊP 1: GIỚI THIỆU TẦNG OPERATIONS ---
+    chef_talk(chef)
+    speech_doc = "Bây giờ, chúng ta sẽ bước vào tầng Operations. Đây là nơi b2biers cung cấp 8 dịch vụ chiến lược khác nhau, chia làm 3 nhóm chính."
+    with scene.voiceover(text=speech_doc) as tracker:
+        title = Text("Tầng Operations: 8 Chiến lược cốt lõi", font_size=30, color=B3B1B.BLUE).to_edge(UP)
+        scene.play(Write(title))
+        scene.wait(max(0, tracker.duration - 1.5))
+    chef_silent(chef)
+
+    # --- NHỊP 2: NHÓM 1 - TỐI ƯU ẢNH HƯỞNG (O1, O2, O4) ---
+    group1_title = Text("1. Nhóm Tối ưu Ảnh hưởng", font_size=24, color=B3B1B.YELLOW).shift(UP*1.5 + LEFT*3)
+    o1 = create_op_icon("O1. Influential User Post Join", "Kết nối KOL").scale(0.7)
+    o2 = create_op_icon("O2. Influential Paths Extension", "Mở rộng đường dẫn").scale(0.7)
+    o4 = create_op_icon("O4. Influential Post Diversity", "Đa dạng hóa nội dung").scale(0.7)
+    g1_ops = VGroup(o1, o2, o4).arrange(DOWN, buff=0.3).next_to(group1_title, DOWN, buff=0.5)
+
+    chef_talk(chef)
+    speech_doc = "Nhóm đầu tiên tập trung vào Ảnh hưởng. O 1 kết nối thương hiệu với người dùng quyền lực. O 2 mở rộng tầm phủ qua các đường dẫn tiềm năng. Và O 4 đảm bảo nội dung lan truyền luôn đa dạng, tránh gây nhàm chán."
+    with scene.voiceover(text=speech_doc) as tracker:
+        scene.play(Write(group1_title))
+        visual_inf = create_strategy_visual("influence").next_to(group1_title, RIGHT, buff=0.5)
+        scene.play(FadeIn(g1_ops, shift=RIGHT), FadeIn(visual_inf))
+        scene.play(Indicate(o4))
+        scene.wait(max(0, tracker.duration - 4))
+    chef_silent(chef)
+
+    # --- NHỊP 3: NHÓM 2 - TƯƠNG TÁC & ĐĂNG KÝ (O3, O5) ---
+    group2_title = Text("2. Nhóm Tương tác & Đăng ký", font_size=24, color=B3B1B.GREEN).shift(UP*1.5 + RIGHT*3)
+    o3 = create_op_icon("O3. Subscribers Engagement", "Tăng tương tác").scale(0.7)
+    o5 = create_op_icon("O5. Adaptive Subscription Max", "Tối ưu hóa thích nghi").scale(0.7)
+    g2_ops = VGroup(o3, o5).arrange(DOWN, buff=0.5).next_to(group2_title, DOWN, buff=0.5)
+
+    chef_talk(chef)
+    speech_doc = "Nhóm thứ hai là Tương tác và Đăng ký. O 3 tối ưu hóa sự gắn kết của những người đã theo dõi. Trong khi O 5 là một cơ chế thích nghi, giúp tối đa hóa lượng người đăng ký mới theo thời gian thực."
+    with scene.voiceover(text=speech_doc) as tracker:
+        scene.play(Write(group2_title))
+        visual_sub = create_strategy_visual("sub").next_to(group2_title, RIGHT, buff=0.5)
+        scene.play(FadeIn(g2_ops, shift=LEFT), FadeIn(visual_sub))
+        scene.play(Indicate(o5))
+        scene.wait(max(0, tracker.duration - 4))
+    chef_silent(chef)
+
+    # Dọn dẹp để hiện GSM
+    scene.play(FadeOut(g1_ops), FadeOut(g2_ops), FadeOut(group1_title), FadeOut(group2_title), FadeOut(visual_inf), FadeOut(visual_sub))
+
+    # --- NHỊP 4: NHÓM 3 - GLOBAL SUBSCRIPTION MAXIMIZATION (O6.1, O6.2, O6.3) ---
+    gsm_title = Text("3. Nhóm GSM (Global Subscription Maximization)", font_size=24, color=B3B1B.RED).shift(UP*1.5)
+    o6_1 = create_op_icon("O6.1. GSM: (k, m)-query", "Tối ưu k hiệu năng trên m ngân sách").scale(0.7)
+    o6_2 = create_op_icon("O6.2. GSM: k-query", "Tối ưu k hiệu năng").scale(0.7)
+    o6_3 = create_op_icon("O6.3. GSM: m-query", "Tối ưu trên m ngân sách").scale(0.7)
+    gsm_ops = VGroup(o6_1, o6_2, o6_3).arrange(DOWN, buff=0.3).next_to(gsm_title, DOWN, buff=0.5)
+
+    chef_talk(chef)
+    speech_doc = "Cuối cùng là nhóm G S M, hay Tối ưu hóa đăng ký toàn cục. Đây là các truy vấn cấp cao: O 6.1 cân bằng giữa số lượng tính năng k và ngân sách m. O 6.2 và 6.3 tập trung chuyên biệt vào từng biến số đơn lẻ."
+    with scene.voiceover(text=speech_doc) as tracker:
+        scene.play(Write(gsm_title))
+        scene.play(FadeIn(gsm_ops, shift=UP))
+        # Hoạt ảnh minh họa k và m
+        formula_gsm = MathTex("f(k, m) \\rightarrow \\max", color=B3B1B.RED).next_to(gsm_ops, RIGHT, buff=1)
+        scene.play(Write(formula_gsm))
+        scene.wait(max(0, tracker.duration - 5))
+    chef_silent(chef)
+
+    # --- NHỊP 5: KẾT LUẬN ---
+    chef_talk(chef)
+    speech_doc = "Tám nhà vận hành này cho phép b2biers đáp ứng mọi nhu cầu của nhà quảng cáo, từ một cửa hàng nhỏ cho đến một tập đoàn lớn."
+    with scene.voiceover(text=speech_doc) as tracker:
+        scene.play(Indicate(gsm_ops))
+        scene.wait(max(0, tracker.duration - 2))
+    chef_silent(chef)
+
+    scene.play(FadeOut(VGroup(gsm_ops, gsm_title, formula_gsm, title)))
+
+    retrun chef
+
+############################################################################################
+## Scene 7: The PDE.
+############################################################################################
+
+##############################################
+### Mobjects
+##############################################
+def create_pde_math_mobjects():
+    # 1. Khung Bài đăng (Post Box)
+    post_box = RoundedRectangle(width=4.5, height=1.5, fill_color=B3B1B.DARK_GRAY, fill_opacity=0.5, stroke_color=B3B1B.WHITE)
+    post_title = Text("Bài đăng (k = 3 features)", font_size=20, color=B3B1B.WHITE).next_to(post_box, UP)
+    
+    # 3 Features bên trong
+    feat_A = Circle(radius=0.35, fill_color=B3B1B.BLUE, fill_opacity=1).move_to(post_box.get_center() + LEFT*1.3)
+    feat_B = Circle(radius=0.35, fill_color=B3B1B.GREEN, fill_opacity=1).move_to(post_box.get_center())
+    feat_C = Circle(radius=0.35, fill_color=B3B1B.ORANGE, fill_opacity=1).move_to(post_box.get_center() + RIGHT*1.3)
+    
+    lbl_A = Text("A", font_size=20).move_to(feat_A)
+    lbl_B = Text("B", font_size=20).move_to(feat_B)
+    lbl_C = Text("C", font_size=20).move_to(feat_C)
+    
+    features = VGroup(VGroup(feat_A, lbl_A), VGroup(feat_B, lbl_B), VGroup(feat_C, lbl_C))
+    post_group = VGroup(post_box, post_title, features)
+    
+    # 2. Biểu đồ cột thể hiện điểm Conceptual Clicks
+    bar_A = Rectangle(width=0.6, height=2.0, fill_color=B3B1B.BLUE, fill_opacity=0.8).next_to(feat_A, DOWN, buff=1)
+    bar_B = Rectangle(width=0.6, height=1.2, fill_color=B3B1B.GREEN, fill_opacity=0.8).next_to(feat_B, DOWN, buff=1).align_to(bar_A, DOWN)
+    bar_C = Rectangle(width=0.6, height=0.3, fill_color=B3B1B.ORANGE, fill_opacity=0.8).next_to(feat_C, DOWN, buff=1).align_to(bar_A, DOWN)
+    
+    txt_click = Text("Conceptual Clicks (Điểm ước lượng)", font_size=20, color=B3B1B.YELLOW).next_to(bar_A, LEFT, buff=0.5).align_to(bar_A, DOWN).shift(UP*1)
+    bars = VGroup(bar_A, bar_B, bar_C, txt_click)
+    
+    # 3. Đồ thị luồng TRIM_E
+    node_b = Circle(radius=0.4, fill_color=B3B1B.GREEN, fill_opacity=1).shift(LEFT*2.5)
+    node_c = Circle(radius=0.4, fill_color=B3B1B.ORANGE, fill_opacity=1).move_to(ORIGIN)
+    node_a = Circle(radius=0.4, fill_color=B3B1B.BLUE, fill_opacity=1).shift(RIGHT*2.5)
+    
+    t_b = Text("B", font_size=20).move_to(node_b)
+    t_c = Text("C", font_size=20).move_to(node_c)
+    t_a = Text("A", font_size=20).move_to(node_a)
+    
+    arr1 = Arrow(node_b.get_right(), node_c.get_left(), buff=0.1)
+    arr2 = Arrow(node_c.get_right(), node_a.get_left(), buff=0.1)
+    
+    trime_graph = VGroup(VGroup(node_b, t_b), arr1, VGroup(node_c, t_c), arr2, VGroup(node_a, t_a))
+    
+    return post_group, bars, trime_graph
+
+##############################################
+### Actions
+##############################################
+def play_pde_sequence(scene):
+    chef = chef_appear(scene, x=-6, y=-2.5, direction=UP)
+    
+    post_group, bars, trime_graph = create_pde_math_mobjects()
+    post_group.move_to(UP*2)
+    
+    # --- NHỊP 1: ĐỊNH NGHĨA PDE & TRIM_E ---
+    chef_talk(chef)
+    speech_doc = "Giờ chúng ta sẽ đi sâu vào bộ não P-D-E. Về mặt toán học, đây là một hệ thống Học tăng cường dựa trên thuật toán cốt lõi có tên là TRIM E. Mục tiêu của nó là tối đa hóa tổng số lượt tương tác qua nhiều vòng lặp."
+    with scene.voiceover(text=speech_doc) as tracker:
+        title = Text("Cơ chế thuật toán TRIM_E", font_size=30, color=B3B1B.RED).to_edge(UP)
+        scene.play(Write(title))
+        scene.wait(max(0, tracker.duration - 1))
+    chef_silent(chef)
+
+    # --- NHỊP 2: BƯỚC CHỌN K FEATURE ---
+    chef_talk(chef)
+    speech_doc = "Bước 1: Hệ thống chọn ra k thương hiệu, giả sử k bằng 3 gồm A, B và C, để hợp nhất thành một bài đăng chung."
+    with scene.voiceover(text=speech_doc) as tracker:
+        post_group.next_to(title, DOWN, buff=0.5)
+        scene.play(FadeIn(post_group, shift=UP))
+        scene.wait(max(0, tracker.duration - 1.5))
+    chef_silent(chef)
+    
+    # --- NHỊP 3: BƯỚC TÍNH TOÁN CONCEPTUAL CLICKS ---
+    chef_talk(chef)
+    speech_doc = "Bước 2: Tính toán Conceptual Clicks. Khi bài đăng nhận được hàng ngàn lượt Thích từ thực tế, hệ thống không chia đều thành tích. Nó sử dụng hàm ước lượng để đánh giá xem chính xác tính năng nào đã thu hút người dùng, và cộng điểm độc lập cho riêng tính năng đó."
+    with scene.voiceover(text=speech_doc) as tracker:
+        # Tạo icon Thích bay vào
+        likes = VGroup(*[Text("👍").scale(0.8).move_to(post_group.get_top() + UP*0.5 + RIGHT*random.uniform(-2,2)) for _ in range(4)])
+        scene.play(LaggedStart(*[FadeIn(l, shift=DOWN*0.5) for l in likes], lag_ratio=0.2), run_time=1.5)
+        scene.play(FadeOut(likes))
+        
+        # Hiện biểu đồ
+        bars.next_to(post_group, DOWN, buff=0.5).shift(RIGHT*1.2)
+        scene.play(FadeIn(bars[3])) # Hiện chữ Conceptual Clicks
+        scene.play(GrowFromBottom(bars[0]), GrowFromBottom(bars[1]), GrowFromBottom(bars[2]), run_time=2)
+        scene.wait(max(0, tracker.duration - 5.5))
+    chef_silent(chef)
+    
+    # --- NHỊP 4: LOẠI BỎ (ELIMINATION) ---
+    chef_talk(chef)
+    speech_doc = "Bước 3: Loại bỏ thích nghi. Dựa vào biểu đồ, tính năng C có điểm Conceptual Clicks quá thấp so với A và B. Thuật toán TRIM E sẽ lập tức ra quyết định loại bỏ C khỏi tập hợp tiềm năng."
+    with scene.voiceover(text=speech_doc) as tracker:
+        cross = Cross(post_group[2][2], stroke_color=B3B1B.RED, stroke_width=6) # Gạch chéo C
+        scene.play(Create(cross))
+        scene.play(Indicate(bars[2], color=B3B1B.RED))
+        scene.wait(max(0, tracker.duration - 2.5))
+    chef_silent(chef)
+    
+    # --- NHỊP 5: XỬ LÝ NÚT ẨN (INTERMEDIATE NODES) - ĐIỂM ĐẶC BIỆT CỦA BÀI BÁO ---
+    chef_talk(chef)
+    speech_doc = "Tuy nhiên, sức mạnh thực sự của TRIM E nằm ở việc ghi nhớ đường dẫn. Dù bị loại bỏ, C không biến mất hoàn toàn mà chuyển thành một 'nút ẩn trung gian'. Điều này giúp hệ thống lưu giữ được các cấu trúc liên kết mạng ban đầu, đảm bảo luồng lan truyền không bị đứt gãy."
+    with scene.voiceover(text=speech_doc) as tracker:
+        # Dọn dẹp để hiện luồng đồ thị
+        scene.play(FadeOut(post_group), FadeOut(bars), FadeOut(cross))
+        
+        trime_graph.move_to(DOWN*0.5)
+        scene.play(FadeIn(trime_graph, shift=UP), run_time=1)
+        
+        # Biến đổi C thành nút ẩn (Dashed mờ)
+        hidden_c = DashedVMobject(Circle(radius=0.4, color=B3B1B.DARK_GRAY, fill_opacity=0.2)).move_to(trime_graph[2][0])
+        t_c_hidden = Text("C", font_size=20, color=B3B1B.DARK_GRAY).move_to(hidden_c)
+        
+        scene.play(
+            FadeOut(trime_graph[2]), 
+            FadeIn(VGroup(hidden_c, t_c_hidden)),
+            run_time=1.5
+        )
+        # Sáng lên luồng truyền đi xuyên qua C
+        scene.play(Indicate(trime_graph[1]), Indicate(trime_graph[3]), color=B3B1B.YELLOW, run_time=1.5)
+        
+        scene.wait(max(0, tracker.duration - 5.5))
+    chef_silent(chef)
+    
+    # --- KẾT LUẬN ---
+    chef_talk(chef)
+    speech_doc = "Quá trình này lặp đi lặp lại liên tục, giúp PDE ngày càng thông minh hơn và chỉ giữ lại những nhóm đối tác mang lại lợi nhuận lan truyền cao nhất."
+    with scene.voiceover(text=speech_doc) as tracker:
+        scene.wait(tracker.duration)
+    chef_silent(chef)
+    
+    # Dọn dẹp
+    scene.play(
+        FadeOut(VGroup(trime_graph[0], trime_graph[1], trime_graph[3], trime_graph[4])),
+        FadeOut(hidden_c), FadeOut(t_c_hidden), FadeOut(title)
+    )
+
+    return chef
+
+############################################################################################
+## Scene 7: The PDE.
+############################################################################################
+
+##############################################
+### Mobjects
+##############################################
+
+def create_platform_card(title, color, bullets):
+    # Khung thẻ
+    card = RoundedRectangle(corner_radius=0.2, width=3.5, height=4, fill_color=color, fill_opacity=0.15, stroke_color=color, stroke_width=4)
+    
+    # Tiêu đề nền tảng
+    t_title = Text(title, font_size=28, color=color, weight=BOLD).next_to(card.get_top(), DOWN, buff=0.3)
+    
+    # Danh sách các kỹ thuật quảng cáo
+    bullet_group = VGroup()
+    for item in bullets:
+        bullet = Text(f"• {item}", font_size=18, color=B3B1B.WHITE)
+        bullet_group.add(bullet)
+    
+    bullet_group.arrange(DOWN, aligned_edge=LEFT, buff=0.3).next_to(t_title, DOWN, buff=0.5).shift(LEFT*0.2)
+    
+    return VGroup(card, t_title, bullet_group)
+
+##############################################
+### Actions
+##############################################
+def play_industry_techniques_sequence(scene, chef):
+    # Khởi tạo 3 thẻ đại diện cho 3 nền tảng
+    fb_bullets = ["Đa dạng hóa nội dung", "Quảng cáo trả phí (Ads)", "Hợp tác chéo", "Quản lý ngân sách"]
+    yt_bullets = ["Tối ưu từ khóa (SEO)", "Đa dạng thể loại Video", "Kêu gọi hành động (CTA)"]
+    ig_bullets = ["Tiếp thị Influencer", "Nội dung người dùng tạo", "Tổ chức Giveaways"]
+    
+    card_fb = create_platform_card("Facebook", B3B1B.BLUE, fb_bullets)
+    card_yt = create_platform_card("YouTube", B3B1B.RED, yt_bullets)
+    card_ig = create_platform_card("Instagram", B3B1B.PURPLE, ig_bullets)
+    
+    cards = VGroup(card_fb, card_yt, card_ig).arrange(RIGHT, buff=0.5).move_to(UP*0.5).scale(0.8)
+
+    # --- NHỊP 1: ĐẶT VẤN ĐỀ ---
+    chef_talk(chef)
+    speech_doc = "Để làm rõ định vị của mình, bài báo đã phân tích bức tranh toàn cảnh về các kỹ thuật quảng cáo hiện tại trên mạng xã hội, dựa trên chia sẻ của chuyên gia hàng đầu Neil Patel."
+    with scene.voiceover(text=speech_doc) as tracker:
+        title = Text("Kỹ thuật Quảng cáo trong ngành Công nghiệp MXH", font_size=28, color=B3B1B.YELLOW).to_edge(UP)
+        scene.play(Write(title))
+        scene.wait(max(0, tracker.duration - 1.5))
+    chef_silent(chef)
+
+    # --- NHỊP 2: LƯỚT QUA 3 NỀN TẢNG ---
+    chef_talk(chef)
+    speech_doc = "Trên Facebook, nhà quảng cáo tối ưu hóa thông qua các loại nội dung đa dạng, công cụ nhắm mục tiêu và hợp tác chéo. Với YouTube, chiến lược xoay quanh tối ưu từ khóa S E O và đa dạng thể loại video. Còn Instagram là vùng đất của các Influencers và các chiến dịch tặng quà Giveaways."
+    with scene.voiceover(text=speech_doc) as tracker:
+        scene.play(FadeIn(card_fb, shift=UP*0.5), run_time=1)
+        scene.play(FadeIn(card_yt, shift=UP*0.5), run_time=1)
+        scene.play(FadeIn(card_ig, shift=UP*0.5), run_time=1)
+        scene.wait(max(0, tracker.duration - 3))
+    chef_silent(chef)
+
+    # --- NHỊP 3: CHỐT LẠI GIÁ TRỊ CỦA B2BIERS ---
+    chef_talk(chef)
+    speech_doc = "Điểm mấu chốt ở đây là: b2biers không hề dẫm chân, cũng không cố gắng thay thế các kỹ thuật của ngành công nghiệp hiện tại."
+    with scene.voiceover(text=speech_doc) as tracker:
+        # Cảnh báo không dẫm chân
+        scene.play(cards.animate.set_opacity(0.4), run_time=1.5)
+        scene.wait(max(0, tracker.duration - 1.5))
+    chef_silent(chef)
+
+    chef_talk(chef)
+    speech_doc = "Ngược lại, nó đứng như một lớp dịch vụ hoàn toàn mới. Các thương hiệu vẫn có thể dùng Facebook Ads hay thuê Influencer trên Instagram, nhưng giờ đây họ có thêm b2biers để tự tạo ra mạng lưới lan truyền của riêng mình một cách tự nhiên và tiết kiệm nhất."
+    with scene.voiceover(text=speech_doc) as tracker:
+        # Vẽ một vòng cung lớn bao bọc cả 3 nền tảng
+        b2b_layer = RoundedRectangle(corner_radius=0.5, width=12, height=5, color=B3B1B.YELLOW, stroke_width=6).move_to(cards.get_center())
+        b2b_label = Text("The b2biers Services", font_size=32, color=B3B1B.YELLOW, weight=BOLD).next_to(b2b_layer, UP, buff=0.2)
+        
+        scene.play(Create(b2b_layer), Write(b2b_label), run_time=2)
+        # Làm sáng lại các thẻ bên trong để cho thấy sự hoạt động song song
+        scene.play(cards.animate.set_opacity(1), run_time=1)
+        scene.wait(max(0, tracker.duration - 3))
+    chef_silent(chef)
+
+    # Dọn dẹp chuyển sang Scene 9
+    scene.play(FadeOut(cards), FadeOut(b2b_layer), FadeOut(b2b_label), FadeOut(title), run_time=1.5)
+
+    return chef
+
+############################################################################################
+## Scene 9: THE GSM SYSTEM
+############################################################################################
+
+##############################################
+### Mobjects
+##############################################
+
+def create_platform_card(title, color, bullets):
+    # Khung thẻ
+    card = RoundedRectangle(corner_radius=0.2, width=3.5, height=4, fill_color=color, fill_opacity=0.15, stroke_color=color, stroke_width=4)
+    
+    # Tiêu đề nền tảng
+    t_title = Text(title, font_size=28, color=color, weight=BOLD).next_to(card.get_top(), DOWN, buff=0.3)
+    
+    # Danh sách các kỹ thuật quảng cáo
+    bullet_group = VGroup()
+    for item in bullets:
+        bullet = Text(f"• {item}", font_size=18, color=B3B1B.WHITE)
+        bullet_group.add(bullet)
+    
+    bullet_group.arrange(DOWN, aligned_edge=LEFT, buff=0.3).next_to(t_title, DOWN, buff=0.5).shift(LEFT*0.2)
+    
+    return VGroup(card, t_title, bullet_group)
+
+##############################################
+### Actions
+##############################################
+
+def play_conclusion_sequence(scene, chef):
+    # 1. Chef xuất hiện và tóm tắt nhanh
+    chef_talk(chef)
+    speech_doc = "Tóm lại, hệ thống b2biers là một giải pháp đột phá, kết hợp giữa toán học tối ưu tổ hợp và thực tiễn kinh doanh quảng cáo, giúp các thương hiệu nhỏ tự tạo ra sức mạnh lan truyền của riêng mình."
+    with scene.voiceover(text=speech_doc) as tracker:
+        summary_title = Text("Tóm tắt giá trị cốt lõi", font_size=32, color=B3B1B.YELLOW).to_edge(UP)
+        
+        # Hiện lại 3 trụ cột ở dạng mini để nhắc bài
+        p1 = Text("• Tối ưu chi phí", font_size=24).next_to(summary_title, DOWN, buff=0.5).shift(RIGHT*2)
+        p2 = Text("• Lan truyền tự nhiên", font_size=24).next_to(p1, DOWN, buff=0.3).align_to(p1, LEFT)
+        p3 = Text("• Công nghệ thích nghi", font_size=24).next_to(p2, DOWN, buff=0.3).align_to(p1, LEFT)
+        
+        scene.play(Write(summary_title))
+        scene.play(FadeIn(VGroup(p1, p2, p3), shift=LEFT*0.3), run_time=2)
+        scene.wait(max(0, tracker.duration - 3))
+    chef_silent(chef)
+
+    # 2. Thông tin về chương trình hỗ trợ (Theo Acknowledgements trong bài báo)
+    chef_talk(chef)
+    speech_doc = "Dự án nghiên cứu này cũng nhận được sự hỗ trợ từ Quỹ Nghiên cứu Quốc gia Singapore, thông qua chương trình A-I Singapore."
+    with scene.voiceover(text=speech_doc) as tracker:
+        scene.play(FadeOut(summary_title), FadeOut(VGroup(p1, p2, p3)))
+        
+        support_txt = Text("Supported by:\nNational Research Foundation, Singapore\nAI Singapore Programme", 
+                          font_size=20, color=B3B1B.LIGHT_GRAY, t2c={"AI Singapore": B3B1B.GOLD}).move_to(RIGHT*2)
+        scene.play(Write(support_txt))
+        scene.wait(max(0, tracker.duration - 2))
+    chef_silent(chef)
+
+    # 3. Lời cảm ơn - Đưa Chef ra giữa màn hình
+    scene.play(FadeOut(support_txt))
+    
+    # Di chuyển Chef ra trung tâm và phóng lớn một chút
+    scene.play(
+        chef.animate.move_to(ORIGIN).scale(1.5),
+        run_time=1.5
+    )
+
+    chef_talk(chef)
+    speech_doc = "Cảm ơn thầy và các bạn đã dành thời gian theo dõi bài thuyết trình của nhóm một về hệ thống b2biers. Chúc mọi người một ngày học tập và làm việc thật hiệu quả!"
+    with scene.voiceover(text=speech_doc) as tracker:
+        thanks_text = Text("CẢM ƠN THẦY VÀ CÁC BẠN!", font_size=48, color=B3B1B.YELLOW, weight=BOLD).next_to(chef, UP, buff=1)
+        names = Text("Nhóm 01: Tuấn Khải & Văn Phúc", font_size=24, color=B3B1B.LIGHT_GRAY).next_to(chef, DOWN, buff=0.8)
+        
+        scene.play(Write(thanks_text), run_time=1.5)
+        scene.play(FadeIn(names, shift=UP*0.3))
+        
+        # Hiệu ứng Chef nhún nhảy hoặc nháy mắt (Indicate) để chào
+        scene.play(Indicate(chef, scale_factor=1.1, color=B3B1B.YELLOW))
+        scene.wait(max(0, tracker.duration - 3))
+    chef_silent(chef)
+
+    # Kết thúc video: Mờ dần
+    scene.play(FadeOut(scene.mobjects))
 
 
 ############################################################################################
@@ -808,10 +1454,34 @@ class FullPresentation(VoiceoverScene):
 
         # --- SCENE 2: CONTEXT & MOTIVATION ---
         self.next_section("Context & Motivation")
-        play_context_sequence(self, wait_times=[0.5,3])
+        chef = play_context_sequence(self, wait_times=[0.5,3])
 
         # --- SCENE 3: THE B2BIERS SOLUTION ---
         self.next_section("The b2biers Solution")
-        play_b2b_sequence(self)
+        chef = play_b2b_sequence(self, chef)
+
+        # --- SCENE 4: THE B2BIERS SYSTEM ---
+        self.next_section("The b2biers System")
+        chef = play_sys_architecture(self, chef)
+
+        # --- SCENE 5: DATA UNITS ---
+        self.next_section("Data Processing Units")
+        chef = play_units_sequence(self, chef)
+
+        # --- SCENE 6: THE GSM SYSTEM ---
+        self.next_section("The GSM System")
+        chef = play_gsm_sequence(self, chef)
+
+        # --- SCENE 7: PDE ---
+        self.next_section("PDE")
+        chef = play_pde_sequence(self, chef)
+
+        # --- SCENE 8: THE B2BIERS PLATFORM ---
+        self.next_section("The b2biers Platform")
+        chef = play_platform_sequence(self, chef)
+
+        # --- SCENE 9: CONCLUSION ---
+        self.next_section("Conclusion")
+        play_conclusion_sequence(self, chef)
 
         self.wait(1)
