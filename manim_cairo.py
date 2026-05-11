@@ -630,7 +630,7 @@ def create_money_bag():
     money_bag = VGroup(
         Circle(radius=0.5, color=B3B1B.GREEN, fill_opacity=0.8),
         Text("$", color=WHITE).scale(1.2)
-    ).next_to(kols, DOWN, buff=0.5)
+    )
 
     return money_bag
 
@@ -703,6 +703,7 @@ def play_b2b_sequence(scene):
     # Stage 1: Khẳng định hàng rào chi phí
     money_bag = create_money_bag()
     kols = create_kols_mobject()
+    money_bag.next_to(kols, DOWN, buff=.5)
 
     chef_talk(chef)
     speech_doc = "Như bạn thấy, việc liên tục thuê các nhà sáng tạo nội dung K-O-L đòi hỏi một ngân sách quảng cáo khổng lồ. Đây là rào cản rất lớn đối với các thương hiệu vừa và nhỏ như Gomu Gomu."
@@ -778,6 +779,15 @@ def play_b2b_sequence(scene):
     
     # Clean to next scene
     scene.play(FadeOut(graph_mobject), FadeOut(VGroup(link1, link2, link3)), FadeOut(chef))
+
+############################################################################################
+## Scene 4: The b2biers Solution (Brand Collaboration)
+############################################################################################
+
+##############################################
+### Mobjects
+##############################################
+
 
 ############################################################################################
 ## Run (The Orchestrator)"""
