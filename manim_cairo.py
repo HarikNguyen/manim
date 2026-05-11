@@ -13,13 +13,13 @@
 import os
 import random
 import time
-import networkx as nx
 import numpy as np
+import networkx as nx
 
 import gtts
 import manim_voiceover.services.gtts
 
-# Ép thư viện nhận diện đúng class gTTS và lỗi gTTSError
+# Force the library to correctly recognize the gTTS class and gTTSError to fix a bug in manim-voiceover
 manim_voiceover.services.gtts.gTTS = gtts.gTTS
 manim_voiceover.services.gtts.gTTSError = gtts.gTTSError
 
@@ -27,7 +27,7 @@ from manim import *
 from manim_voiceover import VoiceoverScene
 from manim_voiceover.services.gtts import GTTSService
 
-# --- GLOBALS ---
+"""## Globals"""
 
 # --- COLORS ---
 class B3B1B:
@@ -67,10 +67,13 @@ def create_footer():
         tex_template=get_vn_template()
     ).to_edge(DR)
 
-# --- SCENE 1 ---
+"""## Scene 1
 
-def create_intro_moobj():
-    # Sử dụng Tex để có font chữ 3b1b chuẩn
+### Mobjects
+"""
+
+def create_intro_mobject():
+    # Use Tex for standard 3b1b font style
     line1 = Tex(
         r"The b2biers System:",
         color=get_colors()["secondary"],
@@ -90,10 +93,13 @@ def create_intro_moobj():
 
     return VGroup(line1, line2, names).arrange(DOWN, buff=0.8)
 
+"""### Actions"""
+
 def play_intro_sequence(scene):
-    intro = create_intro_moobj()
-    # Hiệu ứng FadeIn + shift đặc trưng 3b1b
+    intro = create_intro_mobject()
+    # 3b1b signature FadeIn + shift effect
     speech_doc = "Chào thầy và các bạn. Hôm nay, chúng mình, nhóm một, gồm Nguyễn Lê Tuấn Khải và Nguyễn Văn Phúc xin được trình bày về hệ thống b2biers"
+    
     with scene.voiceover(text=speech_doc) as tracker:
         scene.play(
             FadeIn(intro, shift=UP * 0.3, lag_ratio=0.1),
@@ -104,14 +110,17 @@ def play_intro_sequence(scene):
 
     scene.play(FadeOut(intro, shift=UP * 0.2))
 
-# --- CHEF MASCOT ---
+"""## Chef Mascot
 
-def create_chef(body_color=B3B1B.RED, color=B3B1B.DARKER_GRAY, scale_factor=1.0):
+### Mobjects
+"""
+
+def create_chef(body_color=B3B1B.RED, accent_color=B3B1B.DARKER_GRAY, scale_factor=1.0):
     body = RoundedRectangle(
         corner_radius=0.4, height=2.5, width=1.4, color=body_color, stroke_width=6, fill_color=body_color, fill_opacity=1
     )
 
-    # Mũ
+    # Hat
     hat_neck = Rectangle(width=0.5, height=0.7, color=body_color, stroke_width=6, fill_color=body_color, fill_opacity=1).move_to(body.get_top() + UP*0.3)
     hat_top = VGroup(*[
         Circle(radius=0.3, color=body_color, stroke_width=6, fill_color=body_color, fill_opacity=1).move_to(hat_neck.get_top() + LEFT*0.3),
@@ -119,30 +128,36 @@ def create_chef(body_color=B3B1B.RED, color=B3B1B.DARKER_GRAY, scale_factor=1.0)
         Circle(radius=0.3, color=body_color, stroke_width=6, fill_color=body_color, fill_opacity=1).move_to(hat_neck.get_top() + RIGHT*0.3),
     ])
 
-    # Mắt & Mũi
+    # Eyes & Nose
     eyes = VGroup(
-        Ellipse(width=0.4, height=0.15, color=color, fill_color=color, fill_opacity=1),
-        Ellipse(width=0.4, height=0.15, color=color, fill_color=color, fill_opacity=1)
+        Ellipse(width=0.4, height=0.15, color=accent_color, fill_color=accent_color, fill_opacity=1),
+        Ellipse(width=0.4, height=0.15, color=accent_color, fill_color=accent_color, fill_opacity=1)
     ).arrange(RIGHT, buff=0.15).move_to(body.get_center() + UP*0.7)
 
-    nose = Rectangle(width=0.3, height=0.15, color=color, fill_opacity=1).move_to(body.get_center() + UP*0.2)
+    nose = Rectangle(width=0.3, height=0.15, color=accent_color, fill_opacity=1).move_to(body.get_center() + UP*0.2)
 
-    # Miệng buồn
+    # Sad Mouth
     mouth = Arc(
         radius=0.4,
         start_angle=PI/3,
         angle=PI/3,
-        color=color,
+        color=accent_color,
         stroke_width=6
     ).move_to(body.get_center() + DOWN*0.4)
 
-    # Dùng VGroup thay cho Group để chạy tốt trên Cairo
+    # Workaround for Cairo Render
     all_parts = [body, hat_neck, hat_top, eyes, nose, mouth]
-    chef = VGroup(*all_parts)
+
+    chef = VGroup()
+    for part in all_parts:
+        chef.add(part)
+
     chef.scale(scale_factor)
-    chef.mouth = mouth
+    chef.mouth = chef[-1]
 
     return chef
+
+"""### Actions"""
 
 def chef_appear(scene, x=None, y=None, direction=DOWN, wait_time=0.3):
     if x is None and y is None:
@@ -184,14 +199,17 @@ def chef_silent(chef):
     if hasattr(chef, "original_mouth_points"):
         chef.mouth.set_points(chef.original_mouth_points)
 
-# --- STORE ---
+"""## Store
 
-def create_store_moobj(scale_factor=.5):
-    # 1. Thân cửa hàng
-    wall = Rectangle(width=5, height=3, fill_opacity=1, color="#F3E5AB") # Màu kem
+### Mobjects
+"""
+
+def create_store_mobject(scale_factor=.5):
+    # 1. Store Body
+    wall = Rectangle(width=5, height=3, fill_opacity=1, color="#F3E5AB") # Cream color
     wall.set_stroke(WHITE, 2)
 
-    # 2. Awning (Mái che)
+    # 2. Awning
     awning_strips = VGroup(*[
         Rectangle(width=0.5, height=1, fill_opacity=1, color=res)
         for res in [B3B1B.RED, B3B1B.WHITE, B3B1B.RED, B3B1B.WHITE, B3B1B.RED, B3B1B.WHITE, B3B1B.RED, B3B1B.WHITE, B3B1B.RED, B3B1B.WHITE]
@@ -199,7 +217,7 @@ def create_store_moobj(scale_factor=.5):
     awning_strips.next_to(wall.get_top(), DOWN, buff=0)
 
     # 3. Doors
-    door = Rectangle(width=1, height=1.5, fill_opacity=1, color="#8B4513") # Màu gỗ
+    door = Rectangle(width=1, height=1.5, fill_opacity=1, color="#8B4513") # Wood color
     door.align_to(wall, DOWN).shift(LEFT * 1)
 
     # 4. Windows
@@ -211,7 +229,7 @@ def create_store_moobj(scale_factor=.5):
     cross_v = Line(window.get_top(), window.get_bottom())
     window_panes = VGroup(window, cross_h, cross_v)
 
-    # 5. Sign (Biển hiệu)
+    # 5. Sign
     sign_board = Rectangle(width=3, height=0.7, fill_opacity=1, color=B3B1B.DARK_GRAY)
     sign_board.next_to(wall, UP, buff=0.1)
     sign_text = Text("STORE", font_size=24, color=B3B1B.WHITE).move_to(sign_board)
@@ -220,7 +238,7 @@ def create_store_moobj(scale_factor=.5):
     store = VGroup(wall, awning_strips, door, window_panes, shop_sign).scale(scale_factor)
     return store
 
-def create_sell_obj(store_mobject, image_path="gomugomu.svg"):
+def create_sell_mobject(store_mobject, image_path="gomugomu.svg"):
     try:
         gomu_image = SVGMobject(image_path)
     except FileNotFoundError:
@@ -228,10 +246,11 @@ def create_sell_obj(store_mobject, image_path="gomugomu.svg"):
             Square(side_length=1, color=B3B1B.RED, fill_opacity=0.5),
             Text("File ảnh\nlỗi!", font_size=16, color=B3B1B.WHITE).scale(0.5)
         )
-        print(f"Lỗi: Không tìm thấy file ảnh tại {image_path}. Vui lòng kiểm tra lại.")
+        print(f"Error: Image file not found at {image_path}. Please check again.")
 
     gomu_image.scale(0.2)
 
+    # 2. Create Speech Bubble
     speech_bubble_body = Ellipse(
         width=gomu_image.width + 1,
         height=gomu_image.height + .6,
@@ -241,6 +260,7 @@ def create_sell_obj(store_mobject, image_path="gomugomu.svg"):
         fill_opacity=1,
     )
 
+    # Create Bubble tail
     bubble_tail = VGroup(*[
         Circle(radius=0.2, fill_color=B3B1B.WHITE, fill_opacity=1,).scale(0.5**i).set_stroke(B3B1B.PEACH, 4-i)
         for i in range(3)
@@ -249,10 +269,13 @@ def create_sell_obj(store_mobject, image_path="gomugomu.svg"):
     bubble_tail.next_to(speech_bubble_body, DOWN + LEFT, buff=-0.05).shift(LEFT * 0.2)
 
     bubble_frame = VGroup(speech_bubble_body, bubble_tail)
+
     bubble_frame.next_to(store_mobject.get_top(), UR, buff=0.05)
     gomu_image.move_to(speech_bubble_body.get_center())
 
     return bubble_frame, gomu_image
+
+"""### Actions"""
 
 def store_appear(scene, x=None, y=None, wait_time=1):
     if x is None and y is None:
@@ -260,7 +283,7 @@ def store_appear(scene, x=None, y=None, wait_time=1):
     else:
         pos = np.array([x, y, 0])
 
-    store = create_store_moobj(scale_factor=.3)
+    store = create_store_mobject(scale_factor=.3)
     store.move_to(pos)
 
     scene.play(FadeIn(store, shift=DOWN*0.5))
@@ -268,24 +291,28 @@ def store_appear(scene, x=None, y=None, wait_time=1):
 
     return store
 
-def sell_gomu_gomu_png(scene, store_mobject, image_path="gomugomu.svg", wait_times=None):
-    if wait_times is None:
-        wait_times = [1, 2]
-        
-    bubble_frame, gomu_image = create_sell_obj(store_mobject, image_path)
+def sell_gomu_gomu_png(scene, store_mobject, image_path="gomugomu.svg", wait_times=[1,2]):
+    bubble_frame, gomu_image = create_sell_mobject(store_mobject, image_path)
 
     scene.play(
         FadeIn(bubble_frame, scale=0.1, target_position=store_mobject),
         run_time=wait_times[0]
     )
     scene.add(gomu_image)
-    scene.wait(wait_times[1])
 
+    scene.wait(wait_times[1])
     return bubble_frame, gomu_image
 
-# --- GRAPH SCENE 2 ---
+"""## Scene 2
+
+### Mobjects
+"""
 
 def get_layered_nodes(nx_graph, start_node):
+    """
+    Returns a list of lists.
+    Each sublist contains nodes at the same distance from start_node.
+    """
     layers = []
     visited = {start_node}
     current_layer = [start_node]
@@ -313,15 +340,16 @@ def create_so_graph():
     remaining_nodes = [n for n in so_graph.nodes if n not in top_5_kols]
     store_node_index = random.choice(remaining_nodes)
 
-    graph_mo_obj = Graph(
+    # Mobjects
+    graph_mobject = Graph(
         list(so_graph.nodes),
         list(so_graph.edges),
-        layout="spring",
-        layout_scale=4,
+        layout="spring", # Spring layout helps the graph look natural
+        layout_scale=4,  # Scale up the graph into a wider space
         labels=False,
         vertex_config={
             "radius": 0.08,
-            "color": B3B1B.DARK_GRAY,
+            "color": B3B1B.DARK_GRAY, # Most nodes are gray
             "fill_opacity": 0.6,
             "stroke_width": 0
         },
@@ -332,19 +360,21 @@ def create_so_graph():
         }
     )
 
-    store_node = graph_mo_obj.vertices[store_node_index]
+    store_node = graph_mobject.vertices[store_node_index]
     store_node.set_color(B3B1B.BLUE).set_fill(opacity=1).set_stroke(width=2, color=B3B1B.WHITE).scale(1.1)
 
-    other_vertices = VGroup(*[graph_mo_obj.vertices[i] for i in graph_mo_obj.vertices if i != store_node_index])
-    edges = VGroup(*graph_mo_obj.edges.values())
+    other_vertices = VGroup(*[graph_mobject.vertices[i] for i in graph_mobject.vertices if i != store_node_index])
+    edges = VGroup(*graph_mobject.edges.values())
 
-    top_5_vertices = VGroup(*[graph_mo_obj.vertices[i] for i in top_5_kols])
+    top_5_vertices = VGroup(*[graph_mobject.vertices[i] for i in top_5_kols])
 
     layers_store = get_layered_nodes(so_graph, store_node_index)
     the_big_kol = top_5_kols[0]
     layers_kol = get_layered_nodes(so_graph, the_big_kol)
 
-    return graph_mo_obj, store_node, other_vertices, top_5_vertices, edges, layers_store, layers_kol
+    return graph_mobject, store_node, other_vertices, top_5_vertices, edges, layers_store, layers_kol
+
+"""### Actions"""
 
 def store_node_appear(scene, store_node):
     scene.play(FadeIn(store_node), run_time=1)
@@ -383,30 +413,33 @@ def stop_top_5_blink(top_5_vertices):
         v.set_fill(color=B3B1B.DARK_GRAY, opacity=0.6)
         v.set_stroke(width=0)
 
-def promote_by_store(scene, graph_mo_obj, layers_store):
+# Propagation
+def promote_by_store(scene, graph_mobject, layers_store):
     for layer in layers_store[:2]:
-        nodes = [graph_mo_obj.vertices[n] for n in layer]
+        nodes = [graph_mobject.vertices[n] for n in layer]
         scene.play(
-            *[n.animate.set_fill(BLUE, opacity=0.8) for n in nodes],
+            *[n.animate.set_fill(B3B1B.BLUE, opacity=0.8) for n in nodes],
             run_time=1.8
         )
-
-def promote_via_kol(scene, graph_mo_obj, layers_kol):
+        
+def promote_via_kol(scene, graph_mobject, layers_kol):
     for layer in layers_kol:
-        nodes = [graph_mo_obj.vertices[n] for n in layer]
+        nodes = [graph_mobject.vertices[n] for n in layer]
+        # Exponentially faster
         scene.play(
-            *[n.animate.set_fill(RED, opacity=1).scale(1.1) for n in nodes],
+            *[n.animate.set_fill(B3B1B.RED, opacity=1).scale(1.1) for n in nodes],
             run_time=max(0.05, 0.5 * (0.7**layers_kol.index(layer)))
         )
 
-def reset_graph_colors(scene, graph_mo_obj):
-    all_vertices = graph_mo_obj.vertices
+# Reset
+def reset_graph_colors(scene, graph_mobject):
+    all_vertices = graph_mobject.vertices
     animations = []
 
     for idx, v in all_vertices.items():
         animations.append(v.animate.set_fill(B3B1B.DARK_GRAY, opacity=0.6).scale(1))
 
-    for edge in graph_mo_obj.edges.values():
+    for edge in graph_mobject.edges.values():
         animations.append(edge.animate.set_stroke(color=B3B1B.LIGHT_GRAY, width=0.5, opacity=0.3))
 
     scene.play(*animations, run_time=0.5)
@@ -414,25 +447,27 @@ def reset_graph_colors(scene, graph_mo_obj):
 def impress_node(scene, node, type_='store'):
     if type_ == 'store':
         animation = Indicate(node, color=B3B1B.BLUE, scale_factor=1.2)
-    elif type_ == 'kol':
+    if type_ == 'kol':
         animation = Indicate(node, color=B3B1B.GOLD, scale_factor=1.2)
 
     scene.play(animation, run_time=2)
 
-def shrink_to_store(scene, graph_mo_obj, store_node):
+# Delete
+def shrink_to_store(scene, graph_mobject, store_node):
+    # Get the current on-screen coordinates of the store node
     target_point = store_node.get_center()
 
     scene.play(
-        graph_mo_obj.animate.scale(0.001).move_to(target_point),
+        # The entire graph shrinks to the position of the store node
+        graph_mobject.animate.scale(0.001).move_to(target_point),
         run_time=1.5,
-        rate_func=rate_functions.ease_in_back
+        rate_func=rate_functions.ease_in_back # Slight bounce effect creates a sucking-in feel
     )
-    scene.remove(graph_mo_obj)
+    # Remove completely from render memory
+    scene.remove(graph_mobject)
 
-def play_context_sequence(scene, wait_times=None):
-    if wait_times is None:
-        wait_times = [1.5, 3]
-        
+def play_context_sequence(scene, wait_times=[1.5,3]):
+    # Intro scene
     chef = chef_appear(scene, x=-6, y=-2, direction=RIGHT)
 
     chef_talk(chef)
@@ -467,8 +502,10 @@ def play_context_sequence(scene, wait_times=None):
         scene.wait(tracker.duration)
     chef_silent(chef)
 
-    graph_mo_obj, store_node, other_vertices, top_5_vertices, edges, layers_store, layers_kol = create_so_graph()
-    graph_mo_obj.move_to(RIGHT*2.5)
+    # Graph scene
+    graph_mobject, store_node, other_vertices, top_5_vertices, edges, layers_store, layers_kol = create_so_graph()
+    graph_mobject.move_to(RIGHT*2.5)
+    
     chef_talk(chef)
     speech_doc = "Vậy! Sao chúng ta không nhìn nhận thế giới này như một đồ thị? Dù là thông qua mạng truyền thông, hay mạng xã hội đi chăng nữa. Chúng ta cũng chỉ là một node của đồ thị."
     with scene.voiceover(text=speech_doc) as tracker:
@@ -482,9 +519,9 @@ def play_context_sequence(scene, wait_times=None):
         other_vertices, edges = rest_graph_appear(scene, other_vertices, edges)
         for _ in range(2):
             impress_node(scene, store_node, type_='store')
-            promote_by_store(scene, graph_mo_obj, layers_store)
+            promote_by_store(scene, graph_mobject, layers_store)
             scene.wait(tracker.duration/2)
-            reset_graph_colors(scene, graph_mo_obj)
+            reset_graph_colors(scene, graph_mobject)
     chef_silent(chef)
 
     chef_talk(chef)
@@ -492,9 +529,9 @@ def play_context_sequence(scene, wait_times=None):
     with scene.voiceover(text=speech_doc) as tracker:
         for _ in range(4):
             impress_node(scene, store_node, type_='store')
-            promote_by_store(scene, graph_mo_obj, layers_store)
+            promote_by_store(scene, graph_mobject, layers_store)
             scene.wait(tracker.duration/4)
-            reset_graph_colors(scene, graph_mo_obj)
+            reset_graph_colors(scene, graph_mobject)
     chef_silent(chef)
 
     chef_talk(chef)
@@ -511,9 +548,9 @@ def play_context_sequence(scene, wait_times=None):
     with scene.voiceover(text=speech_doc) as tracker:
         for _ in range(2):
             impress_node(scene, top_5_vertices[0], type_='kol')
-            promote_via_kol(scene, graph_mo_obj, layers_kol)
+            promote_via_kol(scene, graph_mobject, layers_kol)
             scene.wait(tracker.duration/3)
-            reset_graph_colors(scene, graph_mo_obj)
+            reset_graph_colors(scene, graph_mobject)
 
     chef_silent(chef)
 
@@ -523,7 +560,7 @@ def play_context_sequence(scene, wait_times=None):
         scene.wait(tracker.duration)
     chef_silent(chef)
 
-    shrink_to_store(scene, graph_mo_obj, store_node)
+    shrink_to_store(scene, graph_mobject, store_node)
 
     chef_talk(chef)
     speech_doc = "Hãy xem lại túi tiền của mình nào!"
@@ -531,24 +568,22 @@ def play_context_sequence(scene, wait_times=None):
         scene.wait(tracker.duration)
     chef_silent(chef)
 
-# --- RUN (THE ORCHESTRATOR) ---
+"""## Run (The Orchestrator)"""
 
 class FullPresentation(VoiceoverScene):
     def construct(self):
         self.set_speech_service(GTTSService(lang="vi"))
 
-        # Grant Sanderson dùng nền đen tuyền
         self.camera.background_color = B3B1B.BLACK
 
-        # Thêm Footer tinh tế
         footer = create_footer()
         self.add(footer)
 
-        # --- SCENE 1: GIỚI THIỆU ---
+        # --- SCENE 1: INTRODUCTION ---
         self.next_section("Introduction")
         play_intro_sequence(self)
 
-        # --- SCENE 2: BỐI CẢNH ---
+        # --- SCENE 2: CONTEXT & MOTIVATION ---
         self.next_section("Context & Motivation")
         play_context_sequence(self, wait_times=[0.5,3])
 
