@@ -1176,7 +1176,7 @@ def create_pde_math_mobjects():
 ##############################################
 ### Actions
 ##############################################
-def play_pde_sequence(scene. chef):
+def play_pde_sequence(scene, chef):
     post_group, bars, trime_graph = create_pde_math_mobjects()
     post_group.move_to(UP*2)
     
