@@ -1121,7 +1121,7 @@ def play_operations_sequence(scene, chef):
 
     scene.play(FadeOut(VGroup(gsm_ops, gsm_title, formula_gsm, title)))
 
-    retrun chef
+    return chef
 
 ############################################################################################
 ## Scene 7: The PDE.
