@@ -1176,9 +1176,7 @@ def create_pde_math_mobjects():
 ##############################################
 ### Actions
 ##############################################
-def play_pde_sequence(scene):
-    chef = chef_appear(scene, x=-6, y=-2.5, direction=UP)
-    
+def play_pde_sequence(scene. chef):
     post_group, bars, trime_graph = create_pde_math_mobjects()
     post_group.move_to(UP*2)
     
@@ -1472,7 +1470,7 @@ class FullPresentation(VoiceoverScene):
 
         # --- SCENE 6: THE GSM SYSTEM ---
         self.next_section("The GSM System")
-        chef = play_gsm_sequence(self, chef)
+        chef = play_operations_sequence(self, chef)
 
         # --- SCENE 7: PDE ---
         self.next_section("PDE")
@@ -1480,7 +1478,7 @@ class FullPresentation(VoiceoverScene):
 
         # --- SCENE 8: THE B2BIERS PLATFORM ---
         self.next_section("The b2biers Platform")
-        chef = play_platform_sequence(self, chef)
+        chef = play_industry_techniques_sequence(self, chef)
 
         # --- SCENE 9: CONCLUSION ---
         self.next_section("Conclusion")
