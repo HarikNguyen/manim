@@ -585,11 +585,13 @@ def play_context_sequence(scene, wait_times=[1.5,3]):
 
     # clean
     scene.play(
+        FadeOut(graph_mobject),
         FadeOut(store), 
-        FadeOut(graph_elements),
-        FadeOut(speech_bubble),
+        FadeOut(speech_bubble[0]),
+        FadeOut(speech_bubble[1]),
         run_time=1.5
     )
+    
 
     return chef
     
