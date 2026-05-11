@@ -27,8 +27,12 @@ from manim.opengl import *
 from manim_voiceover import VoiceoverScene
 from manim_voiceover.services.gtts import GTTSService
 
-os.system("Xvfb :1 -screen 0 1024x768x24 &")
-os.environ["DISPLAY"] = ":1"
+display_port = random.randint(100, 500)
+os.system(f"Xvfb :{display_port} -screen 0 1920x1080x24 -ac &")
+time.sleep(2)
+os.environ["DISPLAY"] = f":{display_port}"
+# os.system("Xvfb :1 -screen 0 1024x768x24 &")
+# os.environ["DISPLAY"] = ":1"
 
 """## Globals"""
 
