@@ -1432,7 +1432,8 @@ def play_conclusion_sequence(scene, chef):
     chef_silent(chef)
 
     # Kết thúc video: Mờ dần
-    scene.play(FadeOut(scene.mobjects))
+    # scene.play(FadeOut(scene.mobjects))
+    scene.play(*[FadeOut(m) for m in scene.mobjects])
 
 
 ############################################################################################
