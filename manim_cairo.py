@@ -1210,7 +1210,7 @@ def play_pde_sequence(scene, chef):
         # Hiện biểu đồ
         bars.next_to(post_group, DOWN, buff=0.5).shift(RIGHT*1.2)
         scene.play(FadeIn(bars[3])) # Hiện chữ Conceptual Clicks
-        scene.play(GrowFromBottom(bars[0]), GrowFromBottom(bars[1]), GrowFromBottom(bars[2]), run_time=2)
+        scene.play(GrowFromEdge(bars[0], DOWN), GrowFromEdge(bars[1], DOWN), GrowFromEdge(bars[2],DOWN), run_time=2)
         scene.wait(max(0, tracker.duration - 5.5))
     chef_silent(chef)
     
