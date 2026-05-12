@@ -1421,7 +1421,7 @@ def play_conclusion_sequence(scene, chef):
     speech_doc = "Cảm ơn thầy và các bạn đã dành thời gian theo dõi bài thuyết trình của nhóm một về hệ thống b2biers. Chúc mọi người một ngày học tập và làm việc thật hiệu quả!"
     with scene.voiceover(text=speech_doc) as tracker:
         thanks_text = Text("CẢM ƠN THẦY VÀ CÁC BẠN!", font_size=48, color=B3B1B.YELLOW, weight=BOLD).next_to(chef, UP, buff=1)
-        names = Text("Nhóm 01: Tuấn Khải & Văn Phúc", font_size=24, color=B3B1B.LIGHT_GRAY).next_to(chef, DOWN, buff=0.8)
+        names = Text("Nhóm 01: Nguyễn Lê Tuấn Khải", font_size=24, color=B3B1B.LIGHT_GRAY).next_to(chef, DOWN, buff=0.8)
         
         scene.play(Write(thanks_text), run_time=1.5)
         scene.play(FadeIn(names, shift=UP*0.3))
